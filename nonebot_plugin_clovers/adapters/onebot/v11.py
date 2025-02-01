@@ -162,7 +162,7 @@ async def _(group_id: str, /, bot: Bot):
         user_info["group_id"] = str(user_info["group_id"])
         user_info["user_id"] = user_id
         user_info["avatar"] = f"https://q1.qlogo.cn/g?b=qq&nk={user_id}&s=640"
-    return user_info
+    return info_list
 
 
 @adapter.call_method("group_member_info")

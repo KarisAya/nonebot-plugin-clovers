@@ -3,8 +3,7 @@ from pathlib import Path
 import tomllib
 
 if __name__ != "__main__":
-    print("请不要导入本脚本")
-    sys.exit(-1)
+    raise RuntimeError(f"请不要导入本脚本:{__file__}")
 
 with open("pyproject.toml", "rb") as f:
     nbproject = tomllib.load(f)["tool"]["nonebot"]
@@ -17,7 +16,8 @@ def check_file(file: Path):
     return file
 
 
-while priority := input("请输入 clovers 优先级(默认为 20): "):
+while True:
+    priority = input("请输入 clovers 优先级(默认为 20): ")
     if not priority:
         priority = 20
         break
@@ -26,6 +26,8 @@ while priority := input("请输入 clovers 优先级(默认为 20): "):
         break
     else:
         print("优先级必须为数字")
+
+print(f"正在生成 NoneBot 插件 connect_to_the_clovers , 优先级为 {priority}")
 
 connect_to_the_clovers = f"""
 # connect_to_the_clovers.py
@@ -58,6 +60,7 @@ async def _(bot: OnebotV11Bot, event: OnebotV11Event, matcher: Matcher):
         matcher.stop_propagation()
 """
     connect_to_the_clovers += response_code
+    print(f"connect_to_the_clovers 已连接适配器 nonebot.adapters.onebot.v11")
 if "nonebot.adapters.satori" in adapters:
     response_code = """
 from nonebot.adapters.satori import Bot as SatoriBot
@@ -77,6 +80,7 @@ async def _(bot: SatoriBot, event: SatoriEvent, matcher: Matcher):
         matcher.stop_propagation()
 """
     connect_to_the_clovers += response_code
+    print(f"connect_to_the_clovers 已连接适配器 nonebot.adapters.satori")
 
 if "nonebot.adapters.qq" in adapters:
     response_code = """
@@ -112,7 +116,13 @@ async def _(bot: QQBot, event: QQGuildEvent, matcher: Matcher):
     if await qq_guild.response(message, bot=bot, event=event):
         matcher.stop_propagation()
 """
+    connect_to_the_clovers += response_code
+    print(f"connect_to_the_clovers 已连接适配器 nonebot.adapters.qq")
+
 check_file(Path(nbproject["plugin_dirs"][0]) / "connect_to_the_clovers.py").write_text(connect_to_the_clovers)
+
+print(f"正在创建启动bot脚本")
+
 import os
 
 if os.name != "nt":
@@ -123,15 +133,21 @@ else:
 
 run_sh.write_text("nb run")
 
+print(f"正在生成clovers配置文件")
+
 CONFIG_FILE = os.environ.get("CLOVERS_CONFIG_FILE", "clovers.toml")
 
+print(f"配置加载插件")
 plugins = []
 with open("requirement.txt", "r") as file:
     for line in file:
         package = line.strip()
         if package.startswith("clovers"):
-            plugins.append(package.split("==")[0].split(">")[0].split("<")[0].split(">=")[0].split("<=")[0].replace("-", "_"))
+            plugin = package.split("==")[0].split(">")[0].split("<")[0].split(">=")[0].split("<=")[0].replace("-", "_")
+            print(f"\t{plugin}")
+            plugins.append(plugin)
 
+print("以上依据 requirement.txt 添加，如声明有误请手动修改。")
 
 check_file(Path(CONFIG_FILE)).write_text(f'[clovers]\nplugins = {plugins}\nplugin_dirs = ["clovers_library/plugins"]')
 
@@ -149,9 +165,15 @@ plugin = Plugin()
 async def _():
     clovers_config.save()
     logger.info("clovers 配置已保存。")
-    logger.warning(f"本插件由小叶子配置环境脚本生成，请首次执行后删除。{__file__}")
+    logger.warning(f"本插件由小叶子配置环境脚本生成，请在首次执行后删除。{__file__}")
 
 __plugin__ = plugin"""
 )
 
+print(f"已创建插件{temp_plugin}")
+
+print("正在安装依赖")
+
 os.system("nb self install -r requirement.txt")
+
+input("环境配置完毕，请启动bot检查输出。按任意键退出。")

@@ -173,4 +173,4 @@ __plugin__ = plugin""",
 
 print(f"已创建插件{temp_plugin}")
 
-input("请使用当前环境执行 pip install -r requirement.txt 安装依赖")
+input("请使用当前环境执行 pip install -r requirement.txt 安装依赖，按任意键退出此脚本")

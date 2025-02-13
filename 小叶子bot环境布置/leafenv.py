@@ -2,6 +2,10 @@ import sys
 from pathlib import Path
 import tomllib
 
+if __name__ != "__main__":
+    print("请不要导入本脚本")
+    sys.exit(-1)
+
 with open("pyproject.toml", "rb") as f:
     nbproject = tomllib.load(f)["tool"]["nonebot"]
 
@@ -112,22 +116,29 @@ check_file(Path(nbproject["plugin_dirs"][0]) / "connect_to_the_clovers.py").writ
 import os
 
 if os.name != "nt":
-    run_sh = check_file(Path("run.sh"))
+    run_sh = check_file(Path("启动bot.sh"))
     run_sh.chmod(0o755)
 else:
-    run_sh = check_file(Path("run.bat"))
+    run_sh = check_file(Path("启动bot.bat"))
 
 run_sh.write_text("nb run")
 
 CONFIG_FILE = os.environ.get("CLOVERS_CONFIG_FILE", "clovers.toml")
 
-check_file(Path(CONFIG_FILE)).write_text('[clovers]\nplugin_dirs = ["clovers_library/plugins"]')
+plugins = []
+with open("requirement.txt", "r") as file:
+    for line in file:
+        package = line.strip()
+        if package.startswith("clovers"):
+            plugins.append(package.split("==")[0].split(">")[0].split("<")[0].split(">=")[0].split("<=")[0].replace("-", "_"))
+
+
+check_file(Path(CONFIG_FILE)).write_text(f'[clovers]\nplugins = {plugins}\nplugin_dirs = ["clovers_library/plugins"]')
 
 temp_plugin = check_file(Path("clovers_library/plugins/save_config.py"))
 temp_plugin.parent.mkdir(parents=True, exist_ok=True)
 temp_plugin.write_text(
-    """
-from clovers import Plugin
+    """from clovers import Plugin
 from clovers.logger import logger
 from clovers.config import config as clovers_config
 
@@ -138,12 +149,9 @@ plugin = Plugin()
 async def _():
     clovers_config.save()
     logger.info("clovers 配置已保存。")
-    logger.warning(f"本插件由小叶子配置环境脚本生成，请首次执行后删除。\n{__file__}")
+    logger.warning(f"本插件由小叶子配置环境脚本生成，请首次执行后删除。{__file__}")
 
-__plugin__ = plugin
-"""
+__plugin__ = plugin"""
 )
 
-os.system("nb self install -r requirements.txt")
-
-input("环境配置完毕！请手动运行一次 nb run 以生成配置文件。")
+os.system("nb self install -r requirement.txt")

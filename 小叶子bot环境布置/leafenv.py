@@ -119,7 +119,7 @@ async def _(bot: QQBot, event: QQGuildEvent, matcher: Matcher):
     connect_to_the_clovers += response_code
     print(f"connect_to_the_clovers 已连接适配器 nonebot.adapters.qq")
 
-check_file(Path(nbproject["plugin_dirs"][0]) / "connect_to_the_clovers.py").write_text(connect_to_the_clovers)
+check_file(Path(nbproject["plugin_dirs"][0]) / "connect_to_the_clovers.py").write_text(connect_to_the_clovers, encoding="utf-8")
 
 print(f"正在创建启动bot脚本")
 
@@ -131,7 +131,7 @@ if os.name != "nt":
 else:
     run_sh = check_file(Path("启动bot.bat"))
 
-run_sh.write_text("nb run")
+run_sh.write_text("nb run", encoding="utf-8")
 
 print(f"正在生成clovers配置文件")
 
@@ -149,7 +149,7 @@ with open("requirement.txt", "r") as file:
 
 print("以上依据 requirement.txt 添加，如声明有误请手动修改。")
 
-check_file(Path(CONFIG_FILE)).write_text(f'[clovers]\nplugins = {plugins}\nplugin_dirs = ["clovers_library/plugins"]')
+check_file(Path(CONFIG_FILE)).write_text(f'[clovers]\nplugins = {plugins}\nplugin_dirs = ["clovers_library/plugins"]', encoding="utf-8")
 
 temp_plugin = check_file(Path("clovers_library/plugins/save_config.py"))
 temp_plugin.parent.mkdir(parents=True, exist_ok=True)
@@ -167,7 +167,8 @@ async def _():
     logger.info("clovers 配置已保存。")
     logger.warning(f"本插件由小叶子配置环境脚本生成，请在首次执行后删除。{__file__}")
 
-__plugin__ = plugin"""
+__plugin__ = plugin""",
+    encoding="utf-8",
 )
 
 print(f"已创建插件{temp_plugin}")

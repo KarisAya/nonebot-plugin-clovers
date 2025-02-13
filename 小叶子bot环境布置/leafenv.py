@@ -11,7 +11,7 @@ with open("pyproject.toml", "rb") as f:
 
 def check_file(file: Path):
     if file.exists():
-        if input(f"{file} 已存在,是否覆盖？Y/N").upper() != "Y":
+        if input(f"{file} 已存在,是否覆盖？Y/N:").upper() != "Y":
             sys.exit(0)
     return file
 
@@ -172,8 +172,4 @@ __plugin__ = plugin"""
 
 print(f"已创建插件{temp_plugin}")
 
-print("正在安装依赖")
-
-os.system("nb self install -r requirement.txt")
-
-input("环境配置完毕，请启动bot检查输出。按任意键退出。")
+input("请使用当前环境执行 pip install -r requirement.txt 安装依赖")

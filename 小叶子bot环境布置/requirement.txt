@@ -1,0 +1,6 @@
+nonebot_plugin_clovers
+clovers-AIchat
+clovers-groupmate-waifu
+clovers-leafgame
+clovers-setu-collection
+clovers-tabletop-helper

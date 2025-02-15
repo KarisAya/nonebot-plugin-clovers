@@ -24,7 +24,7 @@ def list2message(message: ListMessage):
             case "image":
                 msg += MessageSegment.image(seg.data)
             case "at":
-                msg += MessageSegment.at(seg.data)
+                msg += MessageSegment.at(seg.data) + " "
     return msg
 
 
@@ -66,6 +66,19 @@ async def _(message: SegmentedMessage, /, bot: Bot, event: MessageEvent):
         msg = to_message(seg)
         if msg:
             await bot.send(message=msg, event=event)
+
+
+@adapter.send_method("merge_forward")
+async def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
+    messages = [
+        {"type": "node", "data": {"name": event.self_id, "uin": event.self_id, "content": content}}
+        for seg in message
+        if (content := to_message(seg))
+    ]
+    if isinstance(event, GroupMessageEvent):
+        await bot.send_group_forward_msg(group_id=event.group_id, messages=messages)
+    else:
+        await bot.send_private_forward_msg(user_id=event.user_id, messages=messages)
 
 
 @adapter.send_method("group_message")

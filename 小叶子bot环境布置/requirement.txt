@@ -4,3 +4,4 @@ clovers-groupmate-waifu
 clovers-leafgame
 clovers-setu-collection
 clovers-tabletop-helper
+clovers-divine

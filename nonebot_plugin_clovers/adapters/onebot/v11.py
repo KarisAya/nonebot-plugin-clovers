@@ -122,39 +122,39 @@ async def _(message: PrivateMessage, /, bot: Bot):
 
 
 @adapter.property_method("user_id")
-async def _(event: MessageEvent):
+async def _(event: MessageEvent) -> str:
     return event.get_user_id()
 
 
 @adapter.property_method("group_id")
-async def _(event: MessageEvent):
+async def _(event: MessageEvent) -> str | None:
     if isinstance(event, GroupMessageEvent):
         return str(event.group_id)
 
 
 @adapter.property_method("to_me")
-async def _(event: MessageEvent):
+async def _(event: MessageEvent) -> bool:
     return event.to_me
 
 
 @adapter.property_method("nickname")
-async def _(event: MessageEvent):
-    return event.sender.card or event.sender.nickname
+async def _(event: MessageEvent) -> str:
+    return event.sender.card or event.sender.nickname or event.get_user_id()
 
 
 @adapter.property_method("avatar")
-async def _(event: MessageEvent):
+async def _(event: MessageEvent) -> str:
     return f"https://q1.qlogo.cn/g?b=qq&nk={event.user_id}&s=640"
 
 
 @adapter.property_method("group_avatar")
-async def _(event: MessageEvent):
+async def _(event: MessageEvent) -> str | None:
     if isinstance(event, GroupMessageEvent):
         return f"https://p.qlogo.cn/gh/{event.group_id}/{event.group_id}/640"
 
 
 @adapter.property_method("image_list")
-async def _(event: MessageEvent):
+async def _(event: MessageEvent) -> list[str]:
     url = [msg.data["url"] for msg in event.message if msg.type == "image"]
     if event.reply:
         url += [msg.data["url"] for msg in event.reply.message if msg.type == "image"]

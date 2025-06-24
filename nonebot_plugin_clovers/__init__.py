@@ -5,7 +5,7 @@ from nonebot.log import logger, LoguruHandler
 from clovers.logger import logger as clovers_logger
 from clovers import Adapter
 from .adapters.typing import Handler
-from .clovers import get_client
+from .clovers import Client as NoneBotCloversClient
 from .config import NBPluginConfig
 
 __plugin_meta__ = PluginMetadata(
@@ -29,7 +29,7 @@ priority = nb_config.clovers_matcher_priority
 
 # 创建 NoneBotCloversClient
 
-client = get_client(priority)
+client = NoneBotCloversClient(priority)
 
 for import_name in using_adapters:
     try:

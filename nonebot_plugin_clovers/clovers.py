@@ -72,9 +72,3 @@ class Client(CloversClient):
 
     async def run(self):
         raise RuntimeError(f"{self.name} 为寄生客户端，不需要独立运行")
-
-
-@cache
-def get_client(priority: int):
-    """获取全局 clovers 客户端"""
-    return Client(priority)

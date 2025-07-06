@@ -7,6 +7,7 @@ class NBPluginConfig(BaseModel):
         "nonebot_plugin_clovers.adapters.qq.group",
         "nonebot_plugin_clovers.adapters.qq.guild",
         "nonebot_plugin_clovers.adapters.satori",
+        "nonebot_plugin_clovers.adapters.uninfo",
     ]
     clovers_matcher_priority: int = 100
 

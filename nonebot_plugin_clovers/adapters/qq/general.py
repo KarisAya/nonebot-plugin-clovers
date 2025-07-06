@@ -40,35 +40,38 @@ def to_message(result: Result) -> str | MessageSegment | Message | None:
             return list2message(result.data)
 
 
+async def send_segmented_result(result: SegmentedMessage, bot: Bot, event: MessageEvent):
+    async for seg in result:
+        if msg := to_message(seg):
+            await bot.send(event=event, message=msg)
+
+
 adapter = Adapter("QQ.General")
 
 
 @adapter.send_method("text")
-async def _(message: str, /, bot: Bot, event: MessageEvent):
-    await bot.send(message=message, event=event)
+def _(message: str, /, bot: Bot, event: MessageEvent):
+    return bot.send(message=message, event=event)
 
 
 @adapter.send_method("image")
-async def _(message: FileLike, /, bot: Bot, event: MessageEvent):
-    await bot.send(event=event, message=image2message(message))
+def _(message: FileLike, /, bot: Bot, event: MessageEvent):
+    return bot.send(event=event, message=image2message(message))
 
 
 @adapter.send_method("voice")
-async def _(message: FileLike, /, bot: Bot, event: MessageEvent):
-    await bot.send(event=event, message=voice2message(message))
+def _(message: FileLike, /, bot: Bot, event: MessageEvent):
+    return bot.send(event=event, message=voice2message(message))
 
 
 @adapter.send_method("list")
-async def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
-    await bot.send(event=event, message=list2message(message))
+def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
+    return bot.send(event=event, message=list2message(message))
 
 
 @adapter.send_method("segmented")
-async def _(message: SegmentedMessage, /, bot: Bot, event: MessageEvent):
-    async for seg in message:
-        msg = to_message(seg)
-        if msg:
-            await bot.send(event=event, message=msg)
+def _(message: SegmentedMessage, /, bot: Bot, event: MessageEvent):
+    return send_segmented_result(message, bot=bot, event=event)
 
 
 @adapter.property_method("user_id")

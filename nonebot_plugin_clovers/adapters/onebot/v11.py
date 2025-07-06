@@ -47,48 +47,51 @@ def to_message(result: Result) -> str | Message | None:
             return list2message(result.data)
 
 
+async def send_segmented_result(result: SegmentedMessage, bot: Bot, event: MessageEvent):
+    async for seg in result:
+        if msg := to_message(seg):
+            await bot.send(event=event, message=msg)
+
+
 adapter = Adapter("ONEBOT.V11")
 
 
 @adapter.send_method("text")
-async def _(message: str, /, bot: Bot, event: MessageEvent):
-    await bot.send(message=message, event=event)
+def _(message: str, /, bot: Bot, event: MessageEvent):
+    return bot.send(message=message, event=event)
 
 
 @adapter.send_method("image")
-async def _(message: FileLike, /, bot: Bot, event: MessageEvent):
-    await bot.send(message=MessageSegment.image(message), event=event)
+def _(message: FileLike, /, bot: Bot, event: MessageEvent):
+    return bot.send(message=MessageSegment.image(message), event=event)
 
 
 @adapter.send_method("voice")
-async def _(message: FileLike, /, bot: Bot, event: MessageEvent):
-    await bot.send(message=MessageSegment.record(message), event=event)
+def _(message: FileLike, /, bot: Bot, event: MessageEvent):
+    return bot.send(message=MessageSegment.record(message), event=event)
 
 
 @adapter.send_method("list")
-async def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
-    await bot.send(message=list2message(message), event=event)
+def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
+    return bot.send(message=list2message(message), event=event)
 
 
 @adapter.send_method("segmented")
-async def _(message: SegmentedMessage, /, bot: Bot, event: MessageEvent):
-    async for seg in message:
-        msg = to_message(seg)
-        if msg:
-            await bot.send(message=msg, event=event)
+def _(message: SegmentedMessage, /, bot: Bot, event: MessageEvent):
+    return send_segmented_result(message, bot, event)
 
 
 @adapter.send_method("merge_forward")
-async def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
+def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
     messages = [
         {"type": "node", "data": {"name": event.self_id, "uin": event.self_id, "content": content}}
         for seg in message
         if (content := to_message(seg))
     ]
     if isinstance(event, GroupMessageEvent):
-        await bot.send_group_forward_msg(group_id=event.group_id, messages=messages)
+        return bot.send_group_forward_msg(group_id=event.group_id, messages=messages)
     else:
-        await bot.send_private_forward_msg(user_id=event.user_id, messages=messages)
+        return bot.send_private_forward_msg(user_id=event.user_id, messages=messages)
 
 
 @adapter.send_method("group_message")
@@ -97,13 +100,10 @@ async def _(message: GroupMessage, /, bot: Bot):
     group_id = int(message["group_id"])
     if result.key == "segmented":
         async for seg in result.data:
-            msg = to_message(seg)
-            if msg:
+            if msg := to_message(seg):
                 await bot.send_group_msg(group_id=group_id, message=msg)
-    else:
-        msg = to_message(result)
-        if msg:
-            await bot.send_group_msg(group_id=group_id, message=msg)
+    elif msg := to_message(result):
+        await bot.send_group_msg(group_id=group_id, message=msg)
 
 
 @adapter.send_method("private_message")
@@ -112,13 +112,10 @@ async def _(message: PrivateMessage, /, bot: Bot):
     user_id = int(message["user_id"])
     if result.key == "segmented":
         async for seg in result.data:
-            msg = to_message(seg)
-            if msg:
+            if msg := to_message(seg):
                 await bot.send_private_msg(user_id=user_id, message=msg)
-    else:
-        msg = to_message(result)
-        if msg:
-            await bot.send_private_msg(user_id=user_id, message=msg)
+    elif msg := to_message(result):
+        await bot.send_private_msg(user_id=user_id, message=msg)
 
 
 @adapter.property_method("user_id")

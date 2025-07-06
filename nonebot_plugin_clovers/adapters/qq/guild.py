@@ -38,13 +38,16 @@ async def _(event: AtMessageCreateEvent):
         return [url for attachment in event.attachments if (url := attachment.url)]
 
 
+ANY_ADMIN = GUILD_ADMIN | GUILD_CHANNEL_ADMIN
+
+
 @adapter.property_method("permission")
 async def _(bot: Bot, event: AtMessageCreateEvent) -> int:
     if await SUPERUSER(bot, event):
         return 3
     if await GUILD_OWNER(bot, event):
         return 2
-    if await (GUILD_ADMIN | GUILD_CHANNEL_ADMIN)(bot, event):
+    if await ANY_ADMIN(bot, event):
         return 1
     return 0
 

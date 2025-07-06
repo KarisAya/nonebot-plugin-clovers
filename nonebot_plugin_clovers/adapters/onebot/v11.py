@@ -72,8 +72,9 @@ def _(message: FileLike, /, bot: Bot, event: MessageEvent):
 
 
 @adapter.send_method("list")
-def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
-    return bot.send(message=list2message(message), event=event)
+async def _(message: ListMessage, /, bot: Bot, event: MessageEvent):
+    if msg := list2message(message):
+        return await bot.send(event=event, message=msg)
 
 
 @adapter.send_method("segmented")

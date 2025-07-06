@@ -46,7 +46,7 @@ def _(message: FileLike, /, bot: Bot, event: Event):
 @adapter.send_method("list")
 async def _(message: ListMessage, /, bot: Bot, event: Event):
     if unimsg := list2message(message):
-        return unimsg.send(event, bot)
+        return await unimsg.send(event, bot)
 
 
 @adapter.send_method("segmented")

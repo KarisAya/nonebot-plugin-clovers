@@ -8,6 +8,7 @@ from ..typing import (
     SegmentedMessage,
     GroupMessage,
     PrivateMessage,
+    MemberInfo,
 )
 from .utils import (
     image2message,
@@ -19,7 +20,7 @@ from .utils import (
     get_current_unimsg,
 )
 from nonebot_plugin_alconna.uniseg import UniMessage, Target, Image, At
-from nonebot_plugin_uninfo import ADMIN, OWNER, get_interface
+from nonebot_plugin_uninfo import ADMIN, OWNER, get_interface, Member
 
 
 async def handler(bot: Bot, event: Event, matcher: Matcher): ...
@@ -135,30 +136,30 @@ async def _(bot: Bot, event: Event):
     return [msg.target for msg in unimsg]
 
 
+def format_member_info(member: Member, group_id: str) -> MemberInfo:
+    nickname = member.user.name or member.user.nick or member.user.id
+    return {
+        "user_id": member.user.id,
+        "group_id": group_id,
+        "avatar": member.user.avatar or "",
+        "nickname": nickname,
+        "card": member.nick or nickname,
+        "last_sent_time": 0,
+    }
+
+
 @adapter.call_method("group_member_list")
-async def _(group_id: str, /, bot: Bot, event: Event):
+async def _(group_id: str, /, bot: Bot, event: Event) -> list[MemberInfo]:
     interface = get_interface(bot)
     session = await get_current_session(bot, event)
     if interface is None or session is None:
         return []
     member_list = await interface.get_members(session.scene.type, group_id)
-    info_list = []
-    for member in member_list:
-        if not member.user:
-            continue
-        user_info = {}
-        user_info["user_id"] = member.user.id
-        user_info["group_id"] = group_id
-        user_info["avatar"] = member.user.avatar
-        user_info["nickname"] = member.user.nick
-        user_info["card"] = member.nick
-        user_info["last_sent_time"] = 0
-        info_list.append(user_info)
-    return info_list
+    return [format_member_info(member, group_id) for member in member_list]
 
 
 @adapter.call_method("group_member_info")
-async def _(group_id: str, user_id: str, /, bot: Bot, event: Event):
+async def _(group_id: str, user_id: str, /, bot: Bot, event: Event) -> MemberInfo | None:
     interface = get_interface(bot)
     session = await get_current_session(bot, event)
     if interface is None or session is None:
@@ -166,14 +167,7 @@ async def _(group_id: str, user_id: str, /, bot: Bot, event: Event):
     member = await interface.get_member(session.scene.type, scene_id=group_id, user_id=user_id)
     if member is None:
         return None
-    user_info = {}
-    user_info["user_id"] = member.user.id
-    user_info["group_id"] = group_id
-    user_info["avatar"] = member.user.avatar
-    user_info["nickname"] = member.user.nick
-    user_info["card"] = member.nick
-    user_info["last_sent_time"] = 0
-    return user_info
+    return format_member_info(member, group_id)
 
 
 __adapter__ = adapter

@@ -4,12 +4,14 @@ from nonebot.permission import SUPERUSER
 from nonebot.matcher import Matcher
 from nonebot.adapters.satori import Bot, Message, MessageSegment
 from nonebot.adapters.satori.event import MessageCreatedEvent
+from nonebot.adapters.satori.models import Member
 from ..typing import (
     FileLike,
     ListMessage,
     SegmentedMessage,
     GroupMessage,
     PrivateMessage,
+    MemberInfo,
 )
 
 
@@ -169,37 +171,30 @@ async def _(event: MessageCreatedEvent):
     return [str(msg.data["id"]) for msg in event._message if msg.type == "at"]
 
 
+def format_member_info(member: Member, group_id: str) -> MemberInfo | None:
+    if member.user is None:
+        return
+    nickname = member.user.name or member.user.nick or member.user.id
+    return {
+        "user_id": member.user.id,
+        "group_id": group_id,
+        "avatar": member.user.avatar or "",
+        "nickname": nickname,
+        "card": member.nick or nickname,
+        "last_sent_time": 0,
+    }
+
+
 @adapter.call_method("group_member_list")
-async def _(group_id: str, /, bot: Bot):
+async def _(group_id: str, /, bot: Bot) -> list[MemberInfo]:
     member_list = await bot.guild_member_list(guild_id=group_id)
-    info_list = []
-    for member in member_list.data:
-        if not member.user:
-            continue
-        user_info = member.model_dump()
-        user_info["user_id"] = member.user.id
-        user_info["group_id"] = group_id
-        user_info["avatar"] = member.avatar
-        user_info["nickname"] = member.nick
-        user_info["card"] = member.nick
-        user_info["last_sent_time"] = 0
-        info_list.append(user_info)
-    return info_list
+    return [info for member in member_list if (info := format_member_info(member, group_id))]
 
 
 @adapter.call_method("group_member_info")
-async def _(group_id: str, user_id: str, /, bot: Bot):
+async def _(group_id: str, user_id: str, /, bot: Bot) -> MemberInfo | None:
     member = await bot.guild_member_get(guild_id=group_id, user_id=user_id)
-    if not member.user:
-        return None
-    user_info = member.model_dump()
-    user_info["user_id"] = member.user.id
-    user_info["group_id"] = group_id
-    user_info["avatar"] = member.avatar
-    user_info["nickname"] = member.nick
-    user_info["card"] = member.nick
-    user_info["last_sent_time"] = 0
-    return user_info
+    return format_member_info(member, group_id)
 
 
 __adapter__ = adapter

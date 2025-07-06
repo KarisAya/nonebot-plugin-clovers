@@ -16,6 +16,7 @@ from ..typing import (
     SegmentedMessage,
     GroupMessage,
     PrivateMessage,
+    MemberInfo,
 )
 
 
@@ -175,25 +176,28 @@ async def _(event: MessageEvent) -> list[str]:
     return [str(msg.data["qq"]) for msg in event.message if msg.type == "at"]
 
 
+def format_member_info(member_info: dict) -> MemberInfo:
+    user_id = str(member_info["user_id"])
+    return {
+        "user_id": user_id,
+        "group_id": str(member_info["group_id"]),
+        "avatar": f"https://q1.qlogo.cn/g?b=qq&nk={user_id}&s=640",
+        "nickname": member_info["nickname"],
+        "card": member_info["card"] or member_info["nickname"],
+        "last_sent_time": member_info["last_sent_time"],
+    }
+
+
 @adapter.call_method("group_member_list")
-async def _(group_id: str, /, bot: Bot):
+async def _(group_id: str, /, bot: Bot) -> list[MemberInfo]:
     info_list = await bot.get_group_member_list(group_id=int(group_id))
-    for user_info in info_list:
-        user_id = str(user_info["user_id"])
-        user_info["group_id"] = str(user_info["group_id"])
-        user_info["user_id"] = user_id
-        user_info["avatar"] = f"https://q1.qlogo.cn/g?b=qq&nk={user_id}&s=640"
-    return info_list
+    return [format_member_info(info) for info in info_list]
 
 
 @adapter.call_method("group_member_info")
-async def _(group_id: str, user_id: str, /, bot: Bot):
+async def _(group_id: str, user_id: str, /, bot: Bot) -> MemberInfo:
     user_info = await bot.get_group_member_info(group_id=int(group_id), user_id=int(user_id))
-    member_user_id = str(user_info["user_id"])
-    user_info["group_id"] = str(user_info["group_id"])
-    user_info["user_id"] = member_user_id
-    user_info["avatar"] = f"https://q1.qlogo.cn/g?b=qq&nk={member_user_id}&s=640"
-    return user_info
+    return format_member_info(user_info)
 
 
 __adapter__ = adapter

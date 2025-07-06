@@ -24,3 +24,12 @@ class PrivateMessage(TypedDict):
 @runtime_checkable
 class Handler[Bot: BaseBot, Event: BaseEvent](Protocol):
     async def __call__(self, bot: Bot, event: Event, matcher: Matcher, **kwargs) -> None: ...
+
+
+class MemberInfo(TypedDict):
+    group_id: str
+    user_id: str
+    nickname: str
+    card: str
+    avatar: str
+    last_sent_time: int

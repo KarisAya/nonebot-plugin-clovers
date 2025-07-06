@@ -97,7 +97,7 @@ async def _(bot: Bot, event: Event):
     if session and (avatar := session.user.avatar):
         return avatar
     else:
-        raise ValueError(f"can't get avatar from event:{event.get_session_id()}")
+        raise ValueError(f"Can't get avatar from event:{event.get_session_id()}")
 
 
 @adapter.property_method("group_avatar")
@@ -159,14 +159,14 @@ async def _(group_id: str, /, bot: Bot, event: Event) -> list[MemberInfo]:
 
 
 @adapter.call_method("group_member_info")
-async def _(group_id: str, user_id: str, /, bot: Bot, event: Event) -> MemberInfo | None:
+async def _(group_id: str, user_id: str, /, bot: Bot, event: Event) -> MemberInfo:
     interface = get_interface(bot)
     session = await get_current_session(bot, event)
     if interface is None or session is None:
-        return None
+        raise ValueError(f"Can't find member:{group_id}-{user_id}")
     member = await interface.get_member(session.scene.type, scene_id=group_id, user_id=user_id)
     if member is None:
-        return None
+        raise ValueError(f"Can't find member:{group_id}-{user_id}")
     return format_member_info(member, group_id)
 
 

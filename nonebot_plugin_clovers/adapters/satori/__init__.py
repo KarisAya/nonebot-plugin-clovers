@@ -192,9 +192,11 @@ async def _(group_id: str, /, bot: Bot) -> list[MemberInfo]:
 
 
 @adapter.call_method("group_member_info")
-async def _(group_id: str, user_id: str, /, bot: Bot) -> MemberInfo | None:
-    member = await bot.guild_member_get(guild_id=group_id, user_id=user_id)
-    return format_member_info(member, group_id)
+async def _(group_id: str, user_id: str, /, bot: Bot) -> MemberInfo:
+    member = format_member_info(await bot.guild_member_get(guild_id=group_id, user_id=user_id), group_id)
+    if member is None:
+        raise ValueError(f"Can't find member:{group_id}-{user_id}")
+    return member
 
 
 __adapter__ = adapter

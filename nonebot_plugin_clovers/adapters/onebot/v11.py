@@ -17,6 +17,7 @@ from ..typing import (
     GroupMessage,
     PrivateMessage,
     MemberInfo,
+    FlatContextUnit,
 )
 
 
@@ -158,6 +159,46 @@ async def _(event: MessageEvent) -> list[str]:
     if event.reply:
         url += [msg.data["url"] for msg in event.reply.message if msg.type == "image"]
     return url
+
+
+async def build_flat_context(bot: Bot, msg_id: str) -> list[FlatContextUnit]:
+    context = await bot.get_forward_msg(id=msg_id)
+    if not (messages := context.get("messages")):
+        return []
+    flat_context: list[FlatContextUnit] = []
+    for msg in messages:
+        if not (content := msg.get("content")):
+            continue
+        if content[0]["type"] == "forward":
+            flat_context.extend(await build_flat_context(bot, content[0]["data"]["id"]))
+            continue
+        sender = msg.get("sender")
+        if not sender:
+            user_id = "unknown"
+            nickname = "unknown"
+        else:
+            user_id = str(sender.get("user_id", "unknown"))
+            if "card" in sender and sender["card"]:
+                nickname = sender["card"]
+            else:
+                nickname = sender.get("nickname") or "unknown"
+        text = "".join(x["data"]["text"] for x in content if x["type"] == "text")
+        images = [x["data"]["url"] for x in content if x["type"] == "image"]
+        flat_context.append({"nickname": nickname, "user_id": user_id, "text": text, "images": images})
+    return flat_context
+
+
+@adapter.property_method("flat_context")
+async def _(bot: Bot, event: MessageEvent) -> list[FlatContextUnit] | None:
+    if not (reply := event.reply):
+        return
+    if not (message := reply.message):
+        return
+    if message[0].type != "forward":
+        return
+    if not (msg_id := message[0].data.get("id")):
+        return
+    return await build_flat_context(bot, msg_id)
 
 
 @adapter.property_method("permission")

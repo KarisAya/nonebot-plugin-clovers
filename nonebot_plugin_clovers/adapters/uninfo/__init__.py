@@ -115,6 +115,21 @@ async def _(bot: Bot, event: Event):
     return [url for msg in unimsg if (url := msg.url) is not None]
 
 
+# @adapter.property_method("flat_context")
+# async def _(bot: Bot, event: Event) -> list[FlatContextUnit] | None:
+
+#     unimsg: UniMessage[Reply] = (await get_current_unimsg(bot, event)).get(Reply)
+#     if not (unimsg):
+#         return
+#     reply = unimsg[0].msg
+#     if not reply or isinstance(reply, str):
+#         return
+#     ref: UniMessage[Reference] = (await UniMessage.generate(message=reply, bot=bot)).get(Reference)
+#     if not ref:
+#         return
+#     nodes = ref[0].dump()["nodes"]
+
+
 OWNER_Permission = OWNER()
 ADMIN_Permission = ADMIN()
 

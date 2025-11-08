@@ -33,3 +33,10 @@ class MemberInfo(TypedDict):
     card: str
     avatar: str
     last_sent_time: int
+
+
+class FlatContextUnit(TypedDict):
+    nickname: str
+    user_id: str
+    text: str
+    images: list[str]
